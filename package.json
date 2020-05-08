@@ -1,23 +1,21 @@
 {
-  "name": "magic-cube",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
-  },
-  "dependencies": {
-    "vue": "^2.6.11"
-  },
-  "devDependencies": {
-    "@vue/cli-service": "~4.3.0",
-    "ts-loader": "^7.0.3",
-    "typescript": "^3.8.3",
-    "vue-template-compiler": "^2.6.11"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "name": "magic-cube-visualize",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build"
+    },
+    "dependencies": {
+        "vue": "^2.6.11"
+    },
+    "devDependencies": {
+        "@vue/cli-service": "~4.3.0",
+        "vue-template-compiler": "^2.6.11"
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
 }

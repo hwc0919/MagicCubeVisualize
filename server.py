@@ -4,7 +4,8 @@ from cube.cube import Cube
 
 cube = Cube()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='dist/templates',
+            static_folder='dist/static')
 
 
 @app.route('/')

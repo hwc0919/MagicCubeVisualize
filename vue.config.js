@@ -1,6 +1,6 @@
 module.exports = {
-    outputDir: './server/templates',
-    assetsDir: '../static',
+    assetsDir: './static',
+    indexPath: './templates/index.html',
 
     devServer: {
         proxy: {
