@@ -11,6 +11,8 @@
   },
   "devDependencies": {
     "@vue/cli-service": "~4.3.0",
+    "ts-loader": "^7.0.3",
+    "typescript": "^3.8.3",
     "vue-template-compiler": "^2.6.11"
   },
   "browserslist": [
