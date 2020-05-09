@@ -17,6 +17,10 @@
                 <label>Z: {{ rotateZ }}°</label>
                 <input type="range" v-model.number="rotateZ" :min="-180" :max="180" />
             </div>
+            <div class="input-group">
+                <label>interval: {{ interval }}ms</label>
+                <input type="range" v-model.number="interval" :min="0" :max="1000" />
+            </div>
         </div>
         <div class="operation-buttons">
             <button class="special-button" @click="resetCube">Reset</button>
@@ -38,15 +42,17 @@ export default {
         CubeFace
     },
     data() {
+        let cubeObj = new Cube();
         return {
             rotateX: -30,
             rotateY: 30,
             rotateZ: 0,
             rotating: false,
-            lock: false,
+            interval: 200,
             faces: ['B', 'L', 'F', 'R', 'T', 'Z'],
             opNames: ['B0', 'B1', 'L0', 'L1', 'F0', 'F1', 'R0', 'R1', 'T0', 'T1', 'Z0', 'Z1'],
-            cubeObj: new Cube()
+            cubeObj: cubeObj,
+            cube: cubeObj.cube
         };
     },
     methods: {
@@ -59,8 +65,8 @@ export default {
                 this.rotating = false;
             }, 500);
         },
-        async takeOperation(op_name) {
-            this.cubeObj.takeOperation(op_name);
+        takeOperation(opName) {
+            this.cubeObj.takeOperation(opName);
         },
         async goBack() {
             this.cubeObj.goBack();
@@ -73,21 +79,28 @@ export default {
         },
         async recoverCube() {
             while (!this.cubeObj.isReset()) {
+                console.log('back');
                 this.cubeObj.goBack();
                 await new Promise(resolve => {
                     setTimeout(() => {
                         resolve();
-                    }, 200);
+                    }, this.interval);
                 });
             }
+            alert('Finish');
         }
     },
     computed: {
         adjustRotation() {
             return `transform: translate(-50%, -50%) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg) rotateZ(${this.rotateZ}deg);`;
-        },
-        cube() {
-            return this.cubeObj.cube;
+        }
+    },
+    watch: {
+        cubeObj: {
+            handler() {
+                this.cube = JSON.parse(JSON.stringify(this.cubeObj.cube));
+            },
+            deep: true
         }
     }
 };

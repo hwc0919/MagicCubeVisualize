@@ -7,7 +7,7 @@ export class Cube {
     edges: Array<Array<Array<number>>>;
     history: Array<string>;
     static opNames: Array<string> = ['B0', 'B1', 'F0', 'F1', 'L0', 'L1', 'R0', 'R1', 'T0', 'T1', 'Z0', 'Z1'];
-    static operations: Object = {
+    static operations: { [key: string]: string } = {
         B0: 'rotateBackClock',
         B1: 'rotateBackAnti',
         F0: 'rotateFrontClock',
@@ -22,7 +22,7 @@ export class Cube {
         Z1: 'rotateBottomAnti'
     };
 
-    public constructor() {
+    constructor() {
         this.cube = detailed_cube();
         this.originalCube = detailed_cube();
 
@@ -30,6 +30,7 @@ export class Cube {
         this.corners = adjacent_corners();
         this.edges = adjacent_edges();
         this.history = [];
+        return this;
     }
 
     /**
@@ -125,7 +126,8 @@ export class Cube {
                 this.history.push(opName);
             }
         }
-        this[Cube.operations[opName]]();
+
+        eval(`this.${Cube.operations[opName]}()`);
         return true;
     }
 
