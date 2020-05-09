@@ -30,9 +30,10 @@
 
 <script>
 import CubeFace from '@/components/cube-face';
+import { Cube } from '@/cube/cube';
 
 export default {
-    name: 'Cube',
+    name: 'CubeBox',
     components: {
         CubeFace
     },
@@ -45,38 +46,7 @@ export default {
             lock: false,
             faces: ['B', 'L', 'F', 'R', 'T', 'Z'],
             opNames: ['B0', 'B1', 'L0', 'L1', 'F0', 'F1', 'R0', 'R1', 'T0', 'T1', 'Z0', 'Z1'],
-            cube: [
-                [
-                    ['A00', 'B00', 'A10'],
-                    ['B40', 'F00', 'B50'],
-                    ['A40', 'B80', 'A50']
-                ],
-                [
-                    ['A11', 'B11', 'A21'],
-                    ['B51', 'F11', 'B61'],
-                    ['A51', 'B91', 'A61']
-                ],
-                [
-                    ['A22', 'B22', 'A32'],
-                    ['B62', 'F02', 'B72'],
-                    ['A62', 'BA2', 'A72']
-                ],
-                [
-                    ['A33', 'B33', 'A03'],
-                    ['B73', 'F13', 'B43'],
-                    ['A73', 'BB3', 'A43']
-                ],
-                [
-                    ['A14', 'B04', 'A04'],
-                    ['B14', 'F24', 'B34'],
-                    ['A24', 'B24', 'A34']
-                ],
-                [
-                    ['A65', 'BA5', 'A75'],
-                    ['B95', 'F25', 'BB5'],
-                    ['A55', 'B85', 'A45']
-                ]
-            ]
+            cubeObj: new Cube()
         };
     },
     methods: {
@@ -90,64 +60,35 @@ export default {
             }, 500);
         },
         async takeOperation(op_name) {
-            if (this.lock) return;
-            this.lock = true;
-            await this.$getCube(`/api/op/${op_name}`).catch(err => {
-                alert(err);
-            });
-            this.lock = false;
+            this.cubeObj.takeOperation(op_name);
         },
         async goBack() {
-            if (this.lock) return;
-            this.lock = true;
-            await this.$getCube('/api/go-back').catch(err => {
-                alert(err);
-            });
-            this.lock = false;
+            this.cubeObj.goBack();
         },
         async shuffle() {
-            if (this.lock) return;
-            this.lock = true;
-            await this.$getCube('/api/shuffle').catch(err => {
-                alert(err);
-            });
-            this.lock = false;
+            this.cubeObj.shuffle();
         },
         async resetCube() {
-            if (this.lock) return;
-            this.lock = true;
-            await this.$getCube('/api/reset').catch(err => {
-                alert(err);
-            });
-            this.lock = false;
+            this.cubeObj.reset();
         },
         async recoverCube() {
-            if (this.lock) return;
-            this.lock = true;
-            let flag = true;
-            while (flag) {
-                await this.$getCube('api/go-back').catch(() => {
-                    alert('Finish');
-                    flag = false;
-                });
+            while (!this.cubeObj.isReset()) {
+                this.cubeObj.goBack();
                 await new Promise(resolve => {
                     setTimeout(() => {
                         resolve();
                     }, 200);
                 });
             }
-            this.lock = false;
         }
     },
     computed: {
         adjustRotation() {
             return `transform: translate(-50%, -50%) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg) rotateZ(${this.rotateZ}deg);`;
+        },
+        cube() {
+            return this.cubeObj.cube;
         }
-    },
-    mounted() {
-        this.$getCube('/api/get-cube').catch(err => {
-            alert(err);
-        });
     }
 };
 </script>

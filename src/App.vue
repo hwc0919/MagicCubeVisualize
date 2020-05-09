@@ -1,16 +1,16 @@
 <template>
     <div id="app">
-        <cube></cube>
+        <cube-box></cube-box>
     </div>
 </template>
 
 <script>
-import Cube from '@/components/cube';
+import CubeBox from '@/components/cube-box';
 
 export default {
     name: 'App',
     components: {
-        Cube
+        CubeBox
     }
 };
 </script>
