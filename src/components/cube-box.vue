@@ -68,17 +68,17 @@ export default {
         takeOperation(opName) {
             this.cubeObj.takeOperation(opName);
         },
-        async goBack() {
+        goBack() {
             this.cubeObj.goBack();
         },
-        async shuffle() {
+        shuffle() {
             this.cubeObj.shuffle();
         },
-        async resetCube() {
+        resetCube() {
             this.cubeObj.reset();
         },
         async recoverCube() {
-            while (!this.cubeObj.isReset()) {
+            while (true) {
                 console.log('back');
                 this.cubeObj.goBack();
                 await new Promise(resolve => {
@@ -86,8 +86,11 @@ export default {
                         resolve();
                     }, this.interval);
                 });
+                if (this.cubeObj.isReset()) {
+                    alert('Finish');
+                    break;
+                }
             }
-            alert('Finish');
         }
     },
     computed: {
