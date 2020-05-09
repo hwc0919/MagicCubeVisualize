@@ -90,9 +90,12 @@ export default {
             }, 500);
         },
         async takeOperation(op_name) {
+            if (this.lock) return;
+            this.lock = true;
             await this.$getCube(`/api/op/${op_name}`).catch(err => {
                 alert(err);
             });
+            this.lock = false;
         },
         async goBack() {
             if (this.lock) return;
