@@ -69,6 +69,7 @@ class Cube(object):
 
     def reset(self):
         """Reset cube to original state"""
+        self.history.clear()
         self.cube = copy.deepcopy(self.original_cube)
 
     def is_reset(self):
