@@ -38,6 +38,7 @@ export class Cube {
      */
     public reset(): void {
         this.cube = detailed_cube();
+        this.history.splice(0);
     }
 
     /**
@@ -94,7 +95,7 @@ export class Cube {
     }
 
     /**
-     *  Reset cube to original state
+     *  Check if the cube has been reset
      */
     public isReset(): boolean {
         for (let f = 0; f < 6; f++) {
@@ -151,7 +152,7 @@ export class Cube {
         }
         let reverseOp = Cube.reverseOp(this.history.pop());
         this.takeOperation(reverseOp, false);
-        if (this.isReset()) this.history.splice(0, 0);
+        if (this.isReset()) this.history.splice(0);
         return true;
     }
 

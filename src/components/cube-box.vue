@@ -1,8 +1,21 @@
 <template>
-    <div>
-        <div :class="['cube', { 'rotate-animation': rotating }]" :style="adjustRotation">
-            <cube-face v-for="(f, ind) in faces" :class="f" :face="f" :key="f" :matx="cube[ind]"> </cube-face>
+    <div
+        class="cube-wrapper"
+        @mousedown.self="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @mouseleave="handleMouseLeave"
+    >
+        <!-- Cube Box -->
+        <div
+            :class="['cube', { 'rotate-animation': resetRotating }]"
+            :style="adjustRotation"
+            @mousedown="handleMouseDown"
+        >
+            <cube-face v-for="(f, ind) in faces" :class="f" :face="f" :key="f" :matx="cube[ind]"></cube-face>
         </div>
+
+        <!-- Scale Toolbar -->
         <div class="scale-toolbar">
             <button @click="resetRotation">RESET</button>
             <div class="input-group">
@@ -14,14 +27,12 @@
                 <input type="range" v-model.number="rotateY" :min="-180" :max="180" />
             </div>
             <div class="input-group">
-                <label>Z: {{ rotateZ }}°</label>
-                <input type="range" v-model.number="rotateZ" :min="-180" :max="180" />
-            </div>
-            <div class="input-group">
                 <label>interval: {{ interval }}ms</label>
                 <input type="range" v-model.number="interval" :min="0" :max="1000" />
             </div>
         </div>
+
+        <!-- Operation Button Groups -->
         <div class="operation-buttons">
             <button class="special-button" @click="resetCube">Reset</button>
             <button class="special-button" @click="recoverCube">Recover</button>
@@ -46,7 +57,11 @@ export default {
         return {
             rotateX: -30,
             rotateY: 30,
-            rotateZ: 0,
+            oldRotate: {
+                x: 0,
+                y: 0
+            },
+            resetRotating: false,
             rotating: false,
             interval: 200,
             faces: ['B', 'L', 'F', 'R', 'T', 'Z'],
@@ -57,12 +72,11 @@ export default {
     },
     methods: {
         resetRotation() {
+            this.resetRotating = true;
             this.rotateX = -30;
             this.rotateY = 30;
-            this.rotateZ = 0;
-            this.rotating = true;
             setTimeout(() => {
-                this.rotating = false;
+                this.resetRotating = false;
             }, 500);
         },
         takeOperation(opName) {
@@ -79,7 +93,6 @@ export default {
         },
         async recoverCube() {
             while (true) {
-                console.log('back');
                 this.cubeObj.goBack();
                 await new Promise(resolve => {
                     setTimeout(() => {
@@ -91,11 +104,43 @@ export default {
                     break;
                 }
             }
+        },
+
+        // Rotating by mouse dragging
+        handleMouseDown(event) {
+            this.rotating = true;
+            this.oldRotate.x = this.rotateX;
+            this.oldRotate.y = this.rotateY;
+            this.startX = event.clientX;
+            this.startY = event.clientY;
+        },
+        handleMouseMove(event) {
+            if (this.rotating) {
+                this.rotateX = this.oldRotate.x - (event.clientY - this.startY);
+                this.rotateY = this.oldRotate.y + event.clientX - this.startX;
+
+                if (this.rotateX > 180) {
+                    this.startY -= 360;
+                } else if (this.rotateX < -180) {
+                    this.startY += 360;
+                }
+                if (this.rotateY > 180) {
+                    this.startX += 360;
+                } else if (this.rotateY < -180) {
+                    this.startX -= 360;
+                }
+            }
+        },
+        handleMouseUp(event) {
+            this.rotating = false;
+        },
+        handleMouseLeave(event) {
+            this.rotating = false;
         }
     },
     computed: {
         adjustRotation() {
-            return `transform: translate(-50%, -50%) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg) rotateZ(${this.rotateZ}deg);`;
+            return `transform: translate(-50%, -50%) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg);`;
         }
     },
     watch: {
@@ -129,10 +174,11 @@ button:hover {
 
 .scale-toolbar {
     display: flex;
-    width: 240px;
+    width: 220px;
     flex-direction: column;
     align-items: flex-start;
-    margin: 30px;
+    margin-left: 30px;
+    margin-top: 30px;
 }
 
 .scale-toolbar button {
@@ -154,15 +200,20 @@ button:hover {
     width: 200px;
 }
 
+.cube-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
 .cube {
     position: absolute;
     width: 180px;
     height: 180px;
     left: 50%;
     top: 50%;
-    /* transform: translate(-50%, -50%) rotateX(30deg) rotateY(10deg) rotateZ(10deg); */
     transform-style: preserve-3d;
     /* perspective: 1000px; */
+    /* transform: Computed Attribute */
 }
 
 .rotate-animation {
@@ -195,10 +246,11 @@ button:hover {
 
 .operation-buttons {
     position: absolute;
-    margin-left: 50px;
     display: flex;
     flex-wrap: wrap;
     width: 180px;
+    margin-top: 10px;
+    margin-left: 50px;
     justify-content: space-between;
 }
 
