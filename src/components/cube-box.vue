@@ -1,41 +1,36 @@
 <template>
-    <div
-        class="cube-wrapper"
-        @mousedown.self="handleMouseDown"
-        @mousemove="handleMouseMove"
-        @mouseup="handleMouseUp"
-        @mouseleave="handleMouseLeave"
-    >
+    <div class="cube-wrapper" @mousedown.self="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
+         @mouseleave="handleMouseLeave">
         <!-- Cube Box -->
-        <div
-            :class="['cube', { 'rotate-animation': resetRotating }]"
-            :style="adjustRotation"
-            @mousedown="handleMouseDown"
-        >
+        <div :class="['cube', { 'rotate-animation': resetRotating }]" :style="adjustRotation"
+             @mousedown="handleMouseDown">
             <cube-face v-for="(f, ind) in faces" :class="f" :face="f" :key="f" :matx="cube[ind]"></cube-face>
         </div>
 
         <!-- Scale Toolbar -->
         <div class="scale-toolbar">
-            <button @click="resetRotation">RESET</button>
+            <div class="group1">
+                <switching v-model="exhibiting"></switching>
+                <button @click="resetRotation" :disabled="exhibiting">RESET</button>
+            </div>
             <div class="input-group">
                 <label>X: {{ rotateX }}°</label>
-                <input type="range" v-model.number="rotateX" :min="-180" :max="180" />
+                <input type="range" v-model.number="rotateX" :min="-180" :max="180">
             </div>
             <div class="input-group">
                 <label>Y: {{ rotateY }}°</label>
-                <input type="range" v-model.number="rotateY" :min="-180" :max="180" />
+                <input type="range" v-model.number="rotateY" :min="-180" :max="180">
             </div>
             <div class="input-group">
                 <label>interval: {{ interval }}ms</label>
-                <input type="range" v-model.number="interval" :min="0" :max="1000" />
+                <input type="range" v-model.number="interval" :min="0" :max="1000">
             </div>
         </div>
 
         <!-- Operation Button Groups -->
-        <div class="operation-buttons">
+        <div class="operation-buttons" v-show="!exhibiting">
             <button class="special-button" @click="resetCube">Reset</button>
-            <button class="special-button" @click="recoverCube">Recover</button>
+            <button class="special-button" @click="recoverCube(false, true)">Recover</button>
             <button class="special-button" @click="shuffle">Shuffle</button>
             <button class="special-button" @click="goBack">Back</button>
             <button v-for="op in opNames" :key="`${op}-button`" @click="takeOperation(op)">{{ op }}</button>
@@ -45,12 +40,14 @@
 
 <script>
 import CubeFace from '@/components/cube-face';
+import Switching from '@/components/switching';
 import { Cube } from '@/cube/cube';
 
 export default {
     name: 'CubeBox',
     components: {
-        CubeFace
+        CubeFace,
+        Switching
     },
     data() {
         let cubeObj = new Cube();
@@ -61,6 +58,7 @@ export default {
                 x: 0,
                 y: 0
             },
+            exhibiting: true,
             resetRotating: false,
             rotating: false,
             interval: 200,
@@ -71,6 +69,13 @@ export default {
         };
     },
     methods: {
+        sleep(time) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve();
+                }, time);
+            });
+        },
         resetRotation() {
             this.resetRotating = true;
             this.rotateX = -30;
@@ -83,6 +88,7 @@ export default {
             this.cubeObj.takeOperation(opName);
         },
         goBack() {
+            console.log(this.exhibiting);
             this.cubeObj.goBack();
         },
         shuffle() {
@@ -91,21 +97,45 @@ export default {
         resetCube() {
             this.cubeObj.reset();
         },
-        async recoverCube() {
+        async recoverCube(autoRotate = false, showAlert = true) {
+            let n = 0;
             while (true) {
                 this.cubeObj.goBack();
-                await new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve();
-                    }, this.interval);
-                });
+                await this.sleep(this.interval);
                 if (this.cubeObj.isReset()) {
-                    alert('Finish');
+                    if (showAlert) alert('Finish');
                     break;
+                }
+                if (autoRotate && ++n % 10 === 0) {
+                    this.randomRotate();
+                    n = 0;
                 }
             }
         },
-
+        randomRotate() {
+            this.rotateX = Math.ceil(Math.random() * 360) - 180;
+            this.rotateY = Math.ceil(Math.random() * 360) - 180;
+        },
+        async exhibite() {
+            let n = 0;
+            while (this.exhibiting) {
+                this.resetRotating = true;
+                if (n > 20 + Math.floor(Math.random() * 20)) {
+                    await this.recoverCube(true, false);
+                    this.rotateX = -30;
+                    this.rotateY = 30;
+                    await this.sleep(3000);
+                    n = 0;
+                }
+                let opName = this.opNames[Math.floor(Math.random() * this.opNames.length)];
+                this.takeOperation(opName);
+                await this.sleep(this.interval * 2);
+                if (++n % 5 === 0) {
+                    this.randomRotate();
+                }
+            }
+            this.resetRotating = false;
+        },
         // Rotating by mouse dragging
         handleMouseDown(event) {
             this.rotating = true;
@@ -149,6 +179,14 @@ export default {
                 this.cube = JSON.parse(JSON.stringify(this.cubeObj.cube));
             },
             deep: true
+        },
+        exhibiting() {
+            this.exhibite();
+        }
+    },
+    mounted() {
+        if (this.exhibiting) {
+            this.exhibite();
         }
     }
 };
@@ -164,11 +202,15 @@ button {
     outline: none;
 }
 
+button:disabled {
+    cursor: not-allowed;
+}
+
 button:active {
     transform: scale(0.96);
 }
 
-button:hover {
+button:enabled:hover {
     background-color: #dfe6e9;
 }
 
@@ -178,25 +220,34 @@ button:hover {
     flex-direction: column;
     align-items: flex-start;
     margin-left: 30px;
-    margin-top: 30px;
+    padding-top: 30px;
 }
 
 .scale-toolbar button {
     align-self: center;
 }
 
-.input-group {
+.scale-toolbar .group1 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.scale-toolbar .group1 button {
+    margin-left: 30px;
+}
+
+.scale-toolbar .input-group {
     margin: 10px;
 }
 
-.input-group label {
+.scale-toolbar .input-group label {
     display: inline-block;
     width: 100%;
     text-align: left;
     padding-left: 80px;
 }
 
-.input-group input {
+.scale-toolbar .input-group input {
     width: 200px;
 }
 
@@ -262,7 +313,7 @@ button:hover {
     background-color: #3498db;
     color: white;
 }
-.special-button:hover {
+.special-button:enabled:hover {
     background-color: #2980b9;
 }
 </style>
