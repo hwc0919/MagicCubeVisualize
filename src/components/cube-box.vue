@@ -106,7 +106,8 @@ export default {
                     if (showAlert) alert('Finish');
                     break;
                 }
-                if (autoRotate && ++n % 10 === 0) {
+                if (autoRotate && !this.rotating && ++n % 10 === 0) {
+                    this.resetRotating = true;
                     this.randomRotate();
                     n = 0;
                 }
@@ -117,9 +118,16 @@ export default {
             this.rotateY = Math.ceil(Math.random() * 360) - 180;
         },
         async exhibite() {
+            await this.sleep(1000);
             let n = 0;
             while (this.exhibiting) {
-                this.resetRotating = true;
+                let opName = this.opNames[Math.floor(Math.random() * this.opNames.length)];
+                this.takeOperation(opName);
+                await this.sleep(this.interval * 2);
+                if (++n % 5 === 0 && !this.rotating) {
+                    this.resetRotating = true;
+                    this.randomRotate();
+                }
                 if (n > 20 + Math.floor(Math.random() * 20)) {
                     await this.recoverCube(true, false);
                     this.rotateX = -30;
@@ -127,18 +135,13 @@ export default {
                     await this.sleep(3000);
                     n = 0;
                 }
-                let opName = this.opNames[Math.floor(Math.random() * this.opNames.length)];
-                this.takeOperation(opName);
-                await this.sleep(this.interval * 2);
-                if (++n % 5 === 0) {
-                    this.randomRotate();
-                }
             }
             this.resetRotating = false;
         },
         // Rotating by mouse dragging
         handleMouseDown(event) {
             this.rotating = true;
+            this.resetRotating = false;
             this.oldRotate.x = this.rotateX;
             this.oldRotate.y = this.rotateY;
             this.startX = event.clientX;
@@ -249,6 +252,10 @@ button:enabled:hover {
 
 .scale-toolbar .input-group input {
     width: 200px;
+}
+
+.scale-toolbar .input-group:last-child label {
+    padding-left: 50px;
 }
 
 .cube-wrapper {

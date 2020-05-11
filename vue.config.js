@@ -1,6 +1,7 @@
 module.exports = {
     publicPath: '/MagicCubeVisualize',
     outputDir: './docs',
+    productionSourceMap: false,
     configureWebpack: {
         resolve: { extensions: ['.ts', '.tsx', '.js', '.json'] },
         module: {
