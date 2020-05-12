@@ -1,6 +1,6 @@
 <template>
     <div class="cube-wrapper" @mousedown.self="handleMouseDown" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
-         @mouseleave="handleMouseLeave">
+         @mouseleave="handleMouseUp">
         <!-- Cube Box -->
         <div :class="['cube', { 'rotate-animation': resetRotating }]" :style="adjustRotation"
              @mousedown="handleMouseDown">
@@ -59,6 +59,7 @@ export default {
                 y: 0
             },
             exhibiting: true,
+            exhibitTag: 0,
             resetRotating: false,
             rotating: false,
             interval: 200,
@@ -82,7 +83,7 @@ export default {
             this.rotateY = 30;
             setTimeout(() => {
                 this.resetRotating = false;
-            }, 500);
+            }, 600);
         },
         takeOperation(opName) {
             this.cubeObj.takeOperation(opName);
@@ -118,9 +119,10 @@ export default {
             this.rotateY = Math.ceil(Math.random() * 360) - 180;
         },
         async exhibite() {
+            let tag = ++this.exhibitTag;
             await this.sleep(1000);
             let n = 0;
-            while (this.exhibiting) {
+            while (this.exhibiting && tag === this.exhibitTag) {
                 let opName = this.opNames[Math.floor(Math.random() * this.opNames.length)];
                 this.takeOperation(opName);
                 await this.sleep(this.interval * 2);
@@ -130,6 +132,7 @@ export default {
                 }
                 if (n > 20 + Math.floor(Math.random() * 20)) {
                     await this.recoverCube(true, false);
+                    await this.sleep(this.interval);
                     this.rotateX = -30;
                     this.rotateY = 30;
                     await this.sleep(3000);
@@ -165,9 +168,6 @@ export default {
             }
         },
         handleMouseUp(event) {
-            this.rotating = false;
-        },
-        handleMouseLeave(event) {
             this.rotating = false;
         }
     },
@@ -275,7 +275,7 @@ button:enabled:hover {
 }
 
 .rotate-animation {
-    transition: all 0.5s;
+    transition: all 0.6s;
 }
 
 .B {
